@@ -577,12 +577,23 @@ const CSV_URL = "https://script.google.com/macros/s/AKfycbzg0Ch-kElonNhVguxO33eh
             try {
                // const response = await fetch(CSV_URL);
 
+//const response = await fetch(CSV_URL, {
+//  method: 'GET',
+//  mode: 'no-cors',          // ← key line
+//  cache: 'no-cache',
+//  redirect: 'follow'
+//});
+
 const response = await fetch(CSV_URL, {
   method: 'GET',
-  mode: 'no-cors',          // ← key line
+  mode: 'cors',             // default anyway
+  credentials: 'omit',      // important – no cookies
   cache: 'no-cache',
-  redirect: 'follow'
-});
+  headers: {
+    'Accept': 'text/csv',           // simple header
+    // Do NOT set Content-Type or any custom header here
+  }
+});                
                 
                 if (!response.ok) throw new Error('Impossible de récupérer le fichier CSV');
                 
@@ -628,6 +639,7 @@ const response = await fetch(CSV_URL, {
 </body>
 
 </html>
+
 
 
 
