@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LNS Initiatives • Tableaux de bord</title>
+    <!-- Simple, clean styling -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f4f7fb;
+            color: #1e293b;
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+        }
+        .container {
+            max-width: 1000px;
+            width: 100%;
+        }
+        /* Header / branding */
+        .header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            background: linear-gradient(135deg, #0f2b3d, #1b4a6b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .sub {
+            color: #5b6e8c;
+            font-size: 1.2rem;
+            margin-top: 0.5rem;
+        }
+        /* Card grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0 3rem;
+        }
+        .card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem 1.8rem;
+            box-shadow: 0 15px 35px -10px rgba(0,20,40,0.15);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-decoration: none;
+            color: inherit;
+            border: 1px solid rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+        }
+        .card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 25px 45px -8px rgba(0,40,70,0.25);
+        }
+        .card:active {
+            transform: translateY(-2px);
+        }
+        /* Card specific colors */
+        .card-ipb {
+            border-top: 6px solid #1e6f5c;
+        }
+        .card-sp {
+            border-top: 6px solid #2c5282;
+        }
+        .card-icon {
+            font-size: 3rem;
+            line-height: 1;
+            margin-bottom: 1.2rem;
+        }
+        .card h2 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .card p {
+            color: #475569;
+            margin-bottom: 1.5rem;
+            flex-grow: 1;
+        }
+        .card .url {
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            background: #f1f5f9;
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            display: inline-block;
+            color: #1e4a6b;
+            border: 1px solid #dce5f0;
+            align-self: flex-start;
+        }
+        /* Mini stats preview (inspired by your dashboard) */
+        .stats-preview {
+            display: flex;
+            gap: 1.5rem;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+            color: #366b82;
+            background: #eef4fa;
+            padding: 0.8rem 1.2rem;
+            border-radius: 60px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .stats-preview span {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 3rem;
+            color: #778aa9;
+            font-size: 0.95rem;
+            border-top: 1px dashed #cbd5e1;
+            padding-top: 2rem;
+        }
+        .footer a {
+            color: #1e4a6b;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>📊 LNS Initiatives</h1>
+            <div class="sub">Tableaux de bord & outils de pilotage</div>
+        </div>
+
+        <!-- Main card grid linking to both dashboards -->
+        <div class="dashboard-grid">
+            <!-- IPB Card -->
+            <a href="/ipb/" class="card card-ipb">
+                <div class="card-icon">🕊️</div>
+                <h2>Intelligence par la Base</h2>
+                <p>Analyse des réalités terrain en RCA. Témoignages, vidéos, et signalements populaires.</p>
+                <div class="url">lnsadmus.github.io/ipb/ →</div>
+                <!-- Small preview from your actual dashboard -->
+                <div class="stats-preview">
+                    <span>📸 15+ soumissions</span>
+                    <span>🏷️ #Éducation #Urgence</span>
+                </div>
+            </a>
+
+            <!-- Savoir Partagé Card (placeholder - adapt to your future dashboard) -->
+            <a href="/savoir-partage/" class="card card-sp">
+                <div class="card-icon">🧠</div>
+                <h2>Savoir Partagé</h2>
+                <p>Webinaires et formations par et pour les membres. IA, outils collaboratifs, santé…</p>
+                <div class="url">lnsadmus.github.io/savoir-partage/ →</div>
+                <!-- Generic preview, replace with actual stats later -->
+                <div class="stats-preview">
+                    <span>🎓 4 sessions</span>
+                    <span>🗓️ Prochain: Google Workspace</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- Optional: direct links + description of both projects -->
+        <div style="background: #eaf0f9; border-radius: 40px; padding: 1.5rem; text-align: center; margin: 2rem 0;">
+            <p style="font-size: 1.2rem; margin-bottom: 1rem;">✨ Deux initiatives complémentaires pour guider nos actions</p>
+            <div style="display: flex; gap: 2rem; justify-content: center; flex-wrap: wrap;">
+                <span><strong style="color: #1e6f5c;">IPB</strong> : collecte terrain</span>
+                <span>⚡</span>
+                <span><strong style="color: #2c5282;">Savoir Partagé</strong> : renforcement des compétences</span>
+            </div>
+        </div>
+
+        <!-- Footer with contact/github link -->
+        <div class="footer">
+            <p>🔗 Retrouvez le code source et les infos sur <a href="https://github.com/lnsadmus" target="_blank">GitHub</a> • Données mises à jour en temps réel via Google Sheets</p>
+            <p style="margin-top: 0.8rem;">🕊️ Groupe LNS – Les Non-Ségrégationnistes</p>
+        </div>
+    </div>
+</body>
+</html>
