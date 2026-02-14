@@ -575,6 +575,11 @@ const CSV_URL = "https://script.google.com/macros/s/AKfycbzg0Ch-kElonNhVguxO33eh
             const errorOverlay = document.getElementById('error-overlay');
             
             try {
+
+
+                
+//----------------------------------------------------------------------------------------
+                
                // const response = await fetch(CSV_URL);
 
 //const response = await fetch(CSV_URL, {
@@ -584,7 +589,7 @@ const CSV_URL = "https://script.google.com/macros/s/AKfycbzg0Ch-kElonNhVguxO33eh
 //  redirect: 'follow'
 //});
 
-const response = await fetch(CSV_URL, {
+/*const response = await fetch(CSV_URL, {
   method: 'GET',
   mode: 'cors',             // default anyway
   credentials: 'omit',      // important – no cookies
@@ -615,7 +620,43 @@ const response = await fetch(CSV_URL, {
                 }).filter(row => row["Date du contenu"]); // remove empty rows
 
                 //if (allData.length === 0) throw new Error('Aucune ligne valide');
+*/
+//----------------------------------------------------------
 
+const SPREADSHEET_ID = '1vQb6ZvGw9im_FrK9riRIUwe5vQ3YBJ5dOknOhC7T4bYchlK_1I9nSJ7nM0Es4jzHmYDO7hDUfxn94HY';
+const API_KEY = 'AIzaSyCYRoIiIE95yZlaHbcxAKxS8iqD2rJZfD0';  // ← paste your key
+const SHEET_NAME = 'Form Responses 1';  // or use gid if preferred
+
+const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}!A1:ZZ?key=${API_KEY}`;
+
+const response = await fetch(url);
+if (!response.ok) {
+  throw new Error(`Sheets API error: ${response.status} - ${await response.text()}`);
+}
+
+const data = await response.json();
+const rows = data.values;  // array of arrays: [ [header1, header2, ...], [row1col1, row1col2, ...], ... ]
+
+if (!rows || rows.length < 2) {
+  throw new Error('No data found in sheet');
+}
+
+// Convert to array of objects (like before)
+const headers = rows[0].map(h => h.trim());
+allData = rows.slice(1).map(row => {
+  const obj = {};
+  headers.forEach((header, i) => {
+    obj[header] = (row[i] || '').trim();
+  });
+  return obj;
+}).filter(row => row["Date du contenu"]);  // keep your filter
+
+if (allData.length === 0) {
+  throw new Error('Aucune ligne valide après filtrage');
+}
+
+//--------------------------------------------------------------------                
+                
                 // Populate filters
                 populateFilters();
                 
@@ -639,6 +680,7 @@ const response = await fetch(CSV_URL, {
 </body>
 
 </html>
+
 
 
 
