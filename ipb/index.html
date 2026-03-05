@@ -31,6 +31,20 @@
           height: 24px;
           vertical-align: middle; /* Align icon nicely if there's surrounding text */
         }
+
+   /* Pagination styles */
+        #pagination-container button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        #pagination-container select {
+            cursor: pointer;
+        }
+        
+        #pagination-container select:hover {
+            border-color: #10b981;
+        }     
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -155,6 +169,11 @@ const CSV_URL = "https://script.google.com/macros/s/AKfycbzg0Ch-kElonNhVguxO33eh
             "Thèmes 9/ Tags principaux (choisissez 1 à 3)",
             "Thèmes 10/ Tags principaux (choisissez 1 à 3)"
         ];
+
+      let currentPage = 1;
+      let rowsPerPage = 15;
+      let filteredData = []; // Store the currently filtered data
+
 
         // ==================== CSV PARSER ====================
         function parseCSV(str) {
@@ -393,65 +412,201 @@ const CSV_URL = "https://script.google.com/macros/s/AKfycbzg0Ch-kElonNhVguxO33eh
             });
         }
 
-        // ==================== RENDER TABLE ====================
-        function renderTable(filtered) {
-            // Sort by date descending
-            const sorted = [...filtered].sort((a, b) => {
-                const dateA = new Date(a["Date du contenu (si connue)"]);
-                const dateB = new Date(b["Date du contenu (si connue)"]);
-                return isNaN(dateB) ? -1 : isNaN(dateA) ? 1 : dateB - dateA;
-            }).slice(0, 15);
+// ==================== RENDER TABLE WITH PAGINATION ====================
+function renderTable(filtered) {
+    // Store filtered data globally for pagination
+    filteredData = [...filtered].sort((a, b) => {
+        const dateA = new Date(a["Date du contenu (si connue)"] || a["Date du contenu"]);
+        const dateB = new Date(b["Date du contenu (si connue)"] || b["Date du contenu"]);
+        return isNaN(dateB) ? -1 : isNaN(dateA) ? 1 : dateB - dateA;
+    });
 
-            const tbody = document.getElementById('table-body');
-            tbody.innerHTML = '';
+    const totalRows = filteredData.length;
+    const totalPages = Math.ceil(totalRows / rowsPerPage);
+    
+    // Ensure current page is valid
+    if (currentPage < 1) currentPage = 1;
+    if (currentPage > totalPages) currentPage = totalPages || 1;
+    
+    // Get current page data
+    const startIndex = (currentPage - 1) * rowsPerPage;
+    const endIndex = Math.min(startIndex + rowsPerPage, totalRows);
+    const currentRows = filteredData.slice(startIndex, endIndex);
 
-            sorted.forEach(row => {
-                const tags = getAllTags(row);
-                const dateFormatted = formatDate(row["Date du contenu (si connue)"]);
-                const summary = (row["Résumé bref du contenu (1-2 phrases)"] || '').substring(0, 120) + 
-                               ((row["Résumé bref du contenu (1-2 phrases)"] || '').length > 120 ? '…' : '');
-                
-                let urgencyClass = 'bg-zinc-700 text-zinc-300';
-                const urgencyText = row["Niveau d'urgence / Catégorie"] || '—';
-                const content = row["Fichier Téléchargé ?"];
-                let selectedVideoTd = `<td class="px-8 py-6">
-                      <a href="${content}" target="_blank" rel="noopener noreferrer" class="video-icon-link">
+    // Render table rows
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+
+    currentRows.forEach(row => {
+        const tags = getAllTags(row);
+        const dateFormatted = formatDate(row["Date du contenu (si connue)"] || row["Date du contenu"]);
+        const summary = (row["Résumé bref du contenu (1-2 phrases)"] || '').substring(0, 120) + 
+                       ((row["Résumé bref du contenu (1-2 phrases)"] || '').length > 120 ? '…' : '');
+        
+        let urgencyClass = 'bg-zinc-700 text-zinc-300';
+        const urgencyText = row["Niveau d'urgence / Catégorie"] || '—';
+        const content = row["Fichier Téléchargé ?"] || '';
+        
+        let selectedVideoTd = `<td class="px-8 py-6">`;
+        if (content && content.length > 0) {
+            selectedVideoTd += `<a href="${content}" target="_blank" rel="noopener noreferrer" class="video-icon-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="video-icon">
                           <path d="M7.294 18.062c-.083.05-.183.05-.264 0-.462-.27-.729-.778-.729-1.312V7.25c0-.534.267-1.042.729-1.312.462-.27.973-.243 1.401.071l7.653 5.438c.428.314.675.822.675 1.353s-.247 1.039-.675 1.353l-7.653 5.438c-.428.314-.939.341-1.401.071Z"/>
                         </svg>
-                      </a>
-                    </td>
-                    `;
-if (content.length <= 0) {
-    selectedVideoTd =  `<td class="px-8 py-6">—</td>`;
-}
-                
-                if (urgencyText.includes('Urgent')) urgencyClass = 'bg-red-500/10 text-red-400 border border-red-500/30';
-                else if (urgencyText.includes('Success')) urgencyClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
-                else if (urgencyText.includes('Problème')) urgencyClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/30';
-
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-zinc-800/50 transition-colors';
-                tr.innerHTML = `
-                    <td class="px-8 py-6 text-zinc-400 whitespace-nowrap">${dateFormatted}</td>
-                    <td class="px-8 py-6 max-w-xs">${summary}</td>
-                    <td class="px-8 py-6">
-                        <div class="flex flex-wrap gap-1 text-[10px] text-emerald-300">
-                            ${tags.map(t => `<span class="bg-zinc-800 px-2.5 py-px rounded">${t}</span>`).join('')}
-                        </div>
-                    </td>
-                    <td class="px-8 py-6">
-                        <span class="inline-block px-4 py-1 text-xs font-medium rounded-2xl ${urgencyClass}">
-                            ${urgencyText}
-                        </span>
-                    </td>
-                    ${selectedVideoTd}
-                    `
-                tbody.appendChild(tr);
-            });
-
-            document.getElementById('table-count').textContent = `${sorted.length} entrées affichées`;
+                      </a>`;
+        } else {
+            selectedVideoTd += '—';
         }
+        selectedVideoTd += '</td>';
+        
+        if (urgencyText.includes('Urgent')) urgencyClass = 'bg-red-500/10 text-red-400 border border-red-500/30';
+        else if (urgencyText.includes('Success')) urgencyClass = 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30';
+        else if (urgencyText.includes('Problème')) urgencyClass = 'bg-amber-500/10 text-amber-400 border border-amber-500/30';
+
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-zinc-800/50 transition-colors';
+        tr.innerHTML = `
+            <td class="px-8 py-6 text-zinc-400 whitespace-nowrap">${dateFormatted}</td>
+            <td class="px-8 py-6 max-w-xs">${summary}</td>
+            <td class="px-8 py-6">
+                <div class="flex flex-wrap gap-1 text-[10px] text-emerald-300">
+                    ${tags.map(t => `<span class="bg-zinc-800 px-2.5 py-px rounded">${t}</span>`).join('')}
+                </div>
+            </td>
+            <td class="px-8 py-6">
+                <span class="inline-block px-4 py-1 text-xs font-medium rounded-2xl ${urgencyClass}">
+                    ${urgencyText}
+                </span>
+            </td>
+            ${selectedVideoTd}
+        `;
+        tbody.appendChild(tr);
+    });
+
+    // Update table count and page info
+    document.getElementById('table-count').innerHTML = `
+        <span class="font-medium">${totalRows} entrées au total</span>
+        <span class="mx-2 text-gray-400">•</span>
+        <span>Page ${currentPage} sur ${totalPages || 1}</span>
+    `;
+
+    // Render pagination controls
+    renderPaginationControls(totalPages);
+}
+
+// ==================== PAGINATION CONTROLS ====================
+function renderPaginationControls(totalPages) {
+    // Check if pagination container exists, if not create it
+    let paginationContainer = document.getElementById('pagination-container');
+    
+    if (!paginationContainer) {
+        const tableContainer = document.querySelector('.bg-white.rounded-2xl.overflow-hidden');
+        const paginationDiv = document.createElement('div');
+        paginationDiv.id = 'pagination-container';
+        paginationDiv.className = 'px-6 py-4 border-t border-gray-200 flex items-center justify-between';
+        tableContainer.appendChild(paginationDiv);
+        paginationContainer = paginationDiv;
+    }
+
+    if (totalPages <= 1) {
+        paginationContainer.innerHTML = '';
+        return;
+    }
+
+    let paginationHTML = `
+        <div class="flex items-center gap-2">
+            <button 
+                onclick="changePage(1)" 
+                ${currentPage === 1 ? 'disabled' : ''}
+                class="px-3 py-1 rounded ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-emerald-600 hover:bg-emerald-50'} transition-colors"
+            >
+                «
+            </button>
+            <button 
+                onclick="changePage(${currentPage - 1})" 
+                ${currentPage === 1 ? 'disabled' : ''}
+                class="px-3 py-1 rounded ${currentPage === 1 ? 'text-gray-400 cursor-not-allowed' : 'text-emerald-600 hover:bg-emerald-50'} transition-colors"
+            >
+                ‹
+            </button>
+    `;
+
+    // Calculate page range to show
+    let startPage = Math.max(1, currentPage - 2);
+    let endPage = Math.min(totalPages, currentPage + 2);
+    
+    if (endPage - startPage < 4) {
+        if (startPage === 1) {
+            endPage = Math.min(totalPages, startPage + 4);
+        } else if (endPage === totalPages) {
+            startPage = Math.max(1, endPage - 4);
+        }
+    }
+
+    if (startPage > 1) {
+        paginationHTML += `<span class="text-gray-400">...</span>`;
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        paginationHTML += `
+            <button 
+                onclick="changePage(${i})" 
+                class="px-3 py-1 rounded ${currentPage === i ? 'bg-emerald-600 text-white' : 'text-gray-600 hover:bg-gray-100'} transition-colors"
+            >
+                ${i}
+            </button>
+        `;
+    }
+
+    if (endPage < totalPages) {
+        paginationHTML += `<span class="text-gray-400">...</span>`;
+    }
+
+    paginationHTML += `
+            <button 
+                onclick="changePage(${currentPage + 1})" 
+                ${currentPage === totalPages ? 'disabled' : ''}
+                class="px-3 py-1 rounded ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-emerald-600 hover:bg-emerald-50'} transition-colors"
+            >
+                ›
+            </button>
+            <button 
+                onclick="changePage(${totalPages})" 
+                ${currentPage === totalPages ? 'disabled' : ''}
+                class="px-3 py-1 rounded ${currentPage === totalPages ? 'text-gray-400 cursor-not-allowed' : 'text-emerald-600 hover:bg-emerald-50'} transition-colors"
+            >
+                »
+            </button>
+        </div>
+        
+        <div class="flex items-center gap-4">
+            <select onchange="changeRowsPerPage(this.value)" class="border border-gray-300 rounded-lg px-3 py-1 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                <option value="10" ${rowsPerPage === 10 ? 'selected' : ''}>10 par page</option>
+                <option value="15" ${rowsPerPage === 15 ? 'selected' : ''}>15 par page</option>
+                <option value="25" ${rowsPerPage === 25 ? 'selected' : ''}>25 par page</option>
+                <option value="50" ${rowsPerPage === 50 ? 'selected' : ''}>50 par page</option>
+            </select>
+        </div>
+    `;
+
+    paginationContainer.innerHTML = paginationHTML;
+}
+
+// ==================== PAGINATION FUNCTIONS ====================
+function changePage(page) {
+    const totalPages = Math.ceil(filteredData.length / rowsPerPage);
+    if (page >= 1 && page <= totalPages) {
+        currentPage = page;
+        renderTable(filteredData);
+    }
+}
+
+function changeRowsPerPage(newValue) {
+    rowsPerPage = parseInt(newValue);
+    currentPage = 1; // Reset to first page
+    renderTable(filteredData);
+}
+     
 
         // ==================== FILTERS ====================
         function populateFilters() {
@@ -514,13 +669,15 @@ if (content.length <= 0) {
             return filtered;
         }
 
+// Update  updateDashboard function to reset pagination
         function updateDashboard() {
             const filtered = getFilteredData();
+            currentPage = 1; // Reset to first page when filters change
             renderMetrics(filtered);
             renderCharts(filtered);
-            renderTable(filtered);
+            renderTable(filtered); // This now handles pagination internally
         }
-
+     
         function resetFilters() {
             document.getElementById('urgency-filter').value = '';
             document.getElementById('theme-filter').value = '';
